@@ -13,7 +13,7 @@ VALUES ('Teremok'),
        ('Kebab house'),
        ('Newly opened');
 
-INSERT INTO MEAL (date, description, price, restaurant_id)
+INSERT INTO MEAL (lunch_date, description, price, restaurant_id)
 VALUES (CURRENT_DATE, 'Pancake', 32500, 1),
        (CURRENT_DATE, 'Kvas', 15000, 1),
        (CURRENT_DATE, 'Chicken', 65000, 2),

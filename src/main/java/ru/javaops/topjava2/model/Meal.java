@@ -16,8 +16,8 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "meal", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"restaurant_id", "date", "description"},
-                name = "meal_unique_restaurant_date_description")})
+        @UniqueConstraint(columnNames = {"restaurant_id", "lunch_date", "description"},
+                name = "meal_unique_restaurant_lunch_date_description")})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -35,9 +35,9 @@ public class Meal extends BaseEntity implements HasId, Serializable {
     @Range(min = 0)
     private int price;
 
-    @Column(name = "date", nullable = false)
+    @Column(name = "lunch_date", nullable = false)
     @NotNull
-    private LocalDate date;
+    private LocalDate lunchDate;
 
     @ManyToOne
     @JoinColumn(name = "restaurant_id", nullable = false)
