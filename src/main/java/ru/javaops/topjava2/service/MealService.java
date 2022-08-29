@@ -16,7 +16,7 @@ public class MealService {
 
     @Transactional
     public Meal save(Meal meal, int restaurantId) {
-        meal.setRestaurant(restaurantRepository.getExisting(restaurantId));
+        meal.setRestaurantId(restaurantRepository.getExisting(restaurantId).getId());
         return mealRepository.save(meal);
     }
 }
