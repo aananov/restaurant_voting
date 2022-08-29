@@ -2,6 +2,7 @@ package ru.javaops.topjava2.repository;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
+import ru.javaops.topjava2.error.IllegalRequestDataException;
 import ru.javaops.topjava2.model.Restaurant;
 
 import java.time.LocalDate;
@@ -14,10 +15,11 @@ public interface RestaurantRepository extends BaseRepository<Restaurant> {
     @Query("SELECT distinct r FROM Restaurant r join r.meals m where m.lunchDate=:date")
     List<Restaurant> getAllHavingMealsForDate(LocalDate date);
 
-    @Query("SELECT distinct r FROM Restaurant r join r.meals m where r.id=:id and m.lunchDate=:date")
-    Optional<Restaurant> getHavingMealsForDate(int id, LocalDate date);
-
     @Query("SELECT r from Restaurant r join fetch r.meals m where r.id=:id and m.lunchDate=:date")
     Optional<Restaurant> getWithMeals(int id, LocalDate date);
 
+    default Restaurant getExisting(int restaurantId) {
+        return findById(restaurantId).orElseThrow(
+                () -> new IllegalRequestDataException("Entity with id=" + restaurantId + " not found"));
+    }
 }

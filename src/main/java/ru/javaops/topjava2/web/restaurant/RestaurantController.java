@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static ru.javaops.topjava2.util.DateAndTimeUtil.getDateForRequest;
 import static ru.javaops.topjava2.util.RestaurantUtil.createNewFromTo;
 import static ru.javaops.topjava2.util.RestaurantUtil.updateFromTo;
 import static ru.javaops.topjava2.util.validation.ValidationUtil.assureIdConsistent;
@@ -33,10 +34,15 @@ public class RestaurantController {
     @Autowired
     RestaurantRepository repository;
 
-    @GetMapping
-    public List<Restaurant> getAll(@RequestParam Optional<LocalDate> localDate) {
+    @GetMapping // TODO разделить реализацию для админов и юзеров
+    public ResponseEntity<List<Restaurant>> getAll(@RequestParam Optional<LocalDate> localDate) {
         log.info("getAll on date {}", getDateForRequest(localDate));
-        return repository.getAllHavingMealsForDate(getDateForRequest(localDate));
+        List<Restaurant> allHavingMealsForDate = repository.getAllHavingMealsForDate(getDateForRequest(localDate));
+        if (allHavingMealsForDate.size() > 0) {
+            return new ResponseEntity<>(allHavingMealsForDate, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @DeleteMapping("/{restaurantId}")
@@ -47,13 +53,18 @@ public class RestaurantController {
     }
 
     @GetMapping("/{restaurantId}")
-    public ResponseEntity<Restaurant> get(@RequestParam Optional<LocalDate> localDate, @PathVariable int restaurantId) {
-        log.info("get id={} on date {}", restaurantId, getDateForRequest(localDate));
-        return ResponseEntity.of(repository.getHavingMealsForDate(restaurantId, getDateForRequest(localDate)));
+    public ResponseEntity<RestaurantTo> get(@PathVariable int restaurantId) {
+        log.info("get id={}", restaurantId);
+        Optional<Restaurant> found = repository.findById(restaurantId);
+        if (found.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(new RestaurantTo(found.get()), HttpStatus.OK);
     }
 
     @GetMapping("/{restaurantId}/with-meals")
-    public ResponseEntity<Restaurant> getWithMeals(@RequestParam Optional<LocalDate> localDate, @PathVariable int restaurantId) {
+    public ResponseEntity<Restaurant> getWithMeals(@RequestParam Optional<LocalDate> localDate,
+                                                   @PathVariable int restaurantId) {
         log.info("getWithMeals for id={} on date {}", restaurantId, getDateForRequest(localDate));
         return ResponseEntity.of(repository.getWithMeals(restaurantId, getDateForRequest(localDate)));
     }
@@ -78,9 +89,5 @@ public class RestaurantController {
         Restaurant toBeUpdated = repository.findById(restaurantId)
                 .orElseThrow(() -> new IllegalRequestDataException("Entity with id=" + restaurantId + " not found"));
         updateFromTo(restaurantTo, toBeUpdated);
-    }
-
-    private LocalDate getDateForRequest(Optional<LocalDate> localDate) {
-        return localDate.orElse(LocalDate.now());
     }
 }
