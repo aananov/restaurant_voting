@@ -70,6 +70,7 @@ public class VoteController {
     }
 
     private void checkRestaurant(int restaurantId) {
+        restaurantRepository.getExisting(restaurantId);
         restaurantRepository.getHavingMealsForDate(restaurantId, LocalDate.now())
                 .orElseThrow(() -> new IllegalRequestDataException(
                         "Restaurant with id=" + restaurantId + " has no meals for today"));

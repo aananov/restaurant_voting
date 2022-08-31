@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 import ru.javaops.topjava2.HasId;
+import ru.javaops.topjava2.util.validation.NoHtml;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -31,6 +32,7 @@ public class Meal extends BaseEntity implements HasId, Serializable {
 
     @Column(name = "description", nullable = false)
     @NotBlank
+    @NoHtml
     @Length(min = 3, max = 100)
     private String description;
 
