@@ -10,6 +10,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.javaops.topjava2.error.IllegalRequestDataException;
 import ru.javaops.topjava2.model.Restaurant;
 import ru.javaops.topjava2.to.RestaurantTo;
+import ru.javaops.topjava2.to.RestaurantToWithVotes;
 
 import javax.validation.Valid;
 import java.net.URI;
@@ -30,19 +31,21 @@ public class AdminRestaurantController extends AbstractRestaurantController {
     public static final String REST_URL = "/api/admin/restaurants";
 
     @GetMapping
-    public ResponseEntity<List<Restaurant>> getAll(@RequestParam Optional<LocalDate> localDate) {
-        log.info("getAll on date {}", getDateForRequest(localDate));
-        return super.getAllOnDate(getDateForRequest(localDate));
+    public ResponseEntity<List<RestaurantToWithVotes>> getAll(@RequestParam Optional<LocalDate> localDate,
+                                                              @RequestParam(defaultValue = "false") boolean allDatesSearch) {
+        return super.getAllOnDate(getDateForRequest(localDate), allDatesSearch);
     }
 
     @GetMapping("/{restaurantId}")
-    public ResponseEntity<RestaurantTo> get(@PathVariable int restaurantId) {
-        return super.get(restaurantId);
+    public ResponseEntity<RestaurantToWithVotes> get(@PathVariable int restaurantId,
+                                                     @RequestParam Optional<LocalDate> localDate,
+                                                     @RequestParam(defaultValue = "false") boolean allDatesSearch) {
+        return super.get(restaurantId, getDateForRequest(localDate), allDatesSearch);
     }
 
     @GetMapping("/{restaurantId}/with-meals")
-    public ResponseEntity<Restaurant> getWithMeals(@RequestParam Optional<LocalDate> localDate,
-                                                   @PathVariable int restaurantId) {
+    public ResponseEntity<Restaurant> getWithMeals(@PathVariable int restaurantId,
+                                                   @RequestParam Optional<LocalDate> localDate) {
         return super.getWithMeals(getDateForRequest(localDate), restaurantId);
     }
 
@@ -50,14 +53,14 @@ public class AdminRestaurantController extends AbstractRestaurantController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable int restaurantId) {
         log.info("delete id={}", restaurantId);
-        repository.deleteExisted(restaurantId);
+        restaurantRepository.deleteExisted(restaurantId);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Restaurant> create(@RequestBody @Valid RestaurantTo restaurantTo) {
         log.info("create {}", restaurantTo);
         checkNew(restaurantTo);
-        Restaurant created = repository.save(createNewFromTo(restaurantTo));
+        Restaurant created = restaurantRepository.save(createNewFromTo(restaurantTo));
         URI uriOfNewResource = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path(REST_URL + "/{id}")
                 .buildAndExpand(created.getId()).toUri();
@@ -70,7 +73,7 @@ public class AdminRestaurantController extends AbstractRestaurantController {
     public void update(@Valid @RequestBody RestaurantTo restaurantTo, @PathVariable int restaurantId) {
         log.info("update {} with id={}", restaurantTo, restaurantId);
         assureIdConsistent(restaurantTo, restaurantId);
-        Restaurant toBeUpdated = repository.findById(restaurantId)
+        Restaurant toBeUpdated = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new IllegalRequestDataException("Entity with id=" + restaurantId + " not found"));
         updateFromTo(restaurantTo, toBeUpdated);
     }

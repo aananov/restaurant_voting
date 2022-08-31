@@ -37,6 +37,10 @@ public class Vote extends BaseEntity {
         this.restaurantId = restaurantId;
     }
 
+    public Integer getRestaurantId() {
+        return restaurantId;
+    }
+
     public void setRestaurantId(Integer restaurantId) {
         this.restaurantId = restaurantId;
     }

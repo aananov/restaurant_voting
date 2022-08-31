@@ -24,7 +24,7 @@ import java.time.LocalTime;
 @Slf4j
 public class VoteController {
     public static final String REST_URL = "/api/votes";
-    public static final LocalTime voteEndTime = LocalTime.of(18, 0);
+    public static final LocalTime voteEndTime = LocalTime.of(11, 0);
 
     @Autowired
     VoteRepository voteRepository;
