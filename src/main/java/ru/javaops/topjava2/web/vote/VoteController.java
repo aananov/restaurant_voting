@@ -2,6 +2,8 @@ package ru.javaops.topjava2.web.vote;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +24,10 @@ import java.time.LocalTime;
 @RestController
 @RequestMapping(value = VoteController.REST_URL, produces = MediaType.APPLICATION_JSON_VALUE)
 @Slf4j
+@CacheConfig(cacheNames = "votes")
 public class VoteController {
     public static final String REST_URL = "/api/votes";
-    public static final LocalTime voteEndTime = LocalTime.of(11, 0);
+    public static final LocalTime voteEndTime = LocalTime.of(23, 0); // TODO change time
 
     @Autowired
     VoteRepository voteRepository;
@@ -34,6 +37,7 @@ public class VoteController {
 
     @PostMapping
     @Transactional
+    @CacheEvict(allEntries = true)
     public ResponseEntity<Vote> createWithLocation(@RequestParam int restaurantId,
                                                    @AuthenticationPrincipal AuthUser authUser) {
 
@@ -49,6 +53,7 @@ public class VoteController {
     @PutMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Transactional
+    @CacheEvict(allEntries = true)
     public void update(@RequestParam int restaurantId,
                        @AuthenticationPrincipal AuthUser authUser) {
         log.info("update for restaurant id={} and user id={}", restaurantId, authUser.id());
