@@ -1,7 +1,6 @@
 package ru.javaops.topjava2.web.restaurant;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.javaops.topjava2.error.IllegalRequestDataException;
 import ru.javaops.topjava2.model.Restaurant;
-import ru.javaops.topjava2.repository.RestaurantRepository;
 import ru.javaops.topjava2.to.RestaurantTo;
 
 import javax.validation.Valid;
@@ -26,23 +24,26 @@ import static ru.javaops.topjava2.util.validation.ValidationUtil.assureIdConsist
 import static ru.javaops.topjava2.util.validation.ValidationUtil.checkNew;
 
 @RestController
-@RequestMapping(value = RestaurantController.REST_URL, produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = AdminRestaurantController.REST_URL, produces = MediaType.APPLICATION_JSON_VALUE)
 @Slf4j
-public class RestaurantController {
-    public static final String REST_URL = "/api/restaurants";
+public class AdminRestaurantController extends AbstractRestaurantController {
+    public static final String REST_URL = "/api/admin/restaurants";
 
-    @Autowired
-    RestaurantRepository repository;
-
-    @GetMapping // TODO разделить реализацию для админов и юзеров
+    @GetMapping
     public ResponseEntity<List<Restaurant>> getAll(@RequestParam Optional<LocalDate> localDate) {
         log.info("getAll on date {}", getDateForRequest(localDate));
-        List<Restaurant> allHavingMealsForDate = repository.getAllHavingMealsForDate(getDateForRequest(localDate));
-        if (allHavingMealsForDate.size() > 0) {
-            return new ResponseEntity<>(allHavingMealsForDate, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return super.getAllOnDate(getDateForRequest(localDate));
+    }
+
+    @GetMapping("/{restaurantId}")
+    public ResponseEntity<RestaurantTo> get(@PathVariable int restaurantId) {
+        return super.get(restaurantId);
+    }
+
+    @GetMapping("/{restaurantId}/with-meals")
+    public ResponseEntity<Restaurant> getWithMeals(@RequestParam Optional<LocalDate> localDate,
+                                                   @PathVariable int restaurantId) {
+        return super.getWithMeals(getDateForRequest(localDate), restaurantId);
     }
 
     @DeleteMapping("/{restaurantId}")
@@ -50,23 +51,6 @@ public class RestaurantController {
     public void delete(@PathVariable int restaurantId) {
         log.info("delete id={}", restaurantId);
         repository.deleteExisted(restaurantId);
-    }
-
-    @GetMapping("/{restaurantId}")
-    public ResponseEntity<RestaurantTo> get(@PathVariable int restaurantId) {
-        log.info("get id={}", restaurantId);
-        Optional<Restaurant> found = repository.findById(restaurantId);
-        if (found.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(new RestaurantTo(found.get()), HttpStatus.OK);
-    }
-
-    @GetMapping("/{restaurantId}/with-meals")
-    public ResponseEntity<Restaurant> getWithMeals(@RequestParam Optional<LocalDate> localDate,
-                                                   @PathVariable int restaurantId) {
-        log.info("getWithMeals for id={} on date {}", restaurantId, getDateForRequest(localDate));
-        return ResponseEntity.of(repository.getWithMeals(restaurantId, getDateForRequest(localDate)));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

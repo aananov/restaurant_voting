@@ -12,7 +12,7 @@ import ru.javaops.topjava2.model.Meal;
 import ru.javaops.topjava2.repository.MealRepository;
 import ru.javaops.topjava2.service.MealService;
 import ru.javaops.topjava2.to.MealTo;
-import ru.javaops.topjava2.web.restaurant.RestaurantController;
+import ru.javaops.topjava2.web.restaurant.AdminRestaurantController;
 
 import javax.validation.Valid;
 import java.net.URI;
@@ -31,7 +31,7 @@ import static ru.javaops.topjava2.util.validation.ValidationUtil.checkNew;
 @Slf4j
 public class MealController {
 
-    static final String REST_URL = RestaurantController.REST_URL + "{restaurantId}/meals";
+    static final String REST_URL = AdminRestaurantController.REST_URL + "{restaurantId}/meals";
 
     @Autowired
     MealRepository repository;
