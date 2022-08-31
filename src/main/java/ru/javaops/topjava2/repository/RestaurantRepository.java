@@ -15,6 +15,9 @@ public interface RestaurantRepository extends BaseRepository<Restaurant> {
     @Query("SELECT distinct r FROM Restaurant r join r.meals m where m.lunchDate=:date")
     List<Restaurant> getAllHavingMealsForDate(LocalDate date);
 
+    @Query("SELECT distinct r FROM Restaurant r join r.meals m where r.id=:id and m.lunchDate=:date")
+    Optional<Restaurant> getHavingMealsForDate(int id, LocalDate date);
+
     @Query("SELECT r from Restaurant r join fetch r.meals m where r.id=:id and m.lunchDate=:date")
     Optional<Restaurant> getWithMeals(int id, LocalDate date);
 

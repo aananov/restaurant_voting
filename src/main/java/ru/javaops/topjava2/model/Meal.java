@@ -20,7 +20,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "meal", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"restaurant_id", "lunch_date", "description"},
-                name = "uk_restaurant_lunch_date_description")})
+                name = "meal_uk_restaurant_lunch_date_description")})
 @Getter
 @Setter
 @NoArgsConstructor
