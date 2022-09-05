@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
+import org.springframework.core.NestedExceptionUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,11 @@ import static org.springframework.boot.web.error.ErrorAttributeOptions.Include.M
 @Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public static final String EXCEPTION_DUPLICATE_EMAIL = "User with this email already exists";
+    public static final String EXCEPTION_DUPLICATE_VOTE = "User has voted already";
+    public static final String EXCEPTION_DUPLICATE_MEAL = "Such meal already exists on the date";
+    public static final String KEY_MEAL = "MEAL_UK_RESTAURANT_LUNCH_DATE";
+    public static final String KEY_VOTE = "VOTE_UK_USER_ID_VOTE_DATE";
+
 
     private final ErrorAttributes errorAttributes;
 
@@ -38,6 +45,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             MethodArgumentNotValidException ex,
             @NonNull HttpHeaders headers, @NonNull HttpStatus status, @NonNull WebRequest request) {
         return handleBindingErrors(ex.getBindingResult(), request);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Object> duplicateException(DataIntegrityViolationException ex, WebRequest request) {
+        log.error("DataIntegrityViolationException {}", ex.getMessage());
+        String message = getRootCause(ex).getMessage();
+        if (message.contains(KEY_MEAL)) {
+            message = EXCEPTION_DUPLICATE_MEAL;
+        }
+        if (message.contains(KEY_VOTE)) {
+            message = EXCEPTION_DUPLICATE_VOTE;
+        }
+        return createResponseEntity(getDefaultBody(request,
+                ErrorAttributeOptions.of(MESSAGE), message), HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
     @NonNull
@@ -79,6 +100,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         body.put("status", status.value());
         body.put("error", status.getReasonPhrase());
         return (ResponseEntity<T>) ResponseEntity.status(status).body(body);
+    }
+
+    @NonNull
+    private Throwable getRootCause(@NonNull Throwable t) {
+        Throwable rootCause = NestedExceptionUtils.getRootCause(t);
+        return rootCause != null ? rootCause : t;
     }
 
     @NonNull
